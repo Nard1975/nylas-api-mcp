@@ -3,7 +3,7 @@
     "leonardo-ai": {
       "url": "https://mcp.leonardo.ai/v1/mcp",
       "headers": {
-        "API-Key": "replace this string with your api key"
+        "API-Key": "c7e622ff-3329-4561-8576-a0eddc5e42a5"
       }
     }
   }
