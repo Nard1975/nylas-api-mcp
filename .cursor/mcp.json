@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "leonardo-ai": {
+      "url": "https://mcp.leonardo.ai/v1/mcp",
+      "headers": {
+        "API-Key": "replace this string with your api key"
+      }
+    }
+  }
+}
