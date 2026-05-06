@@ -4,6 +4,8 @@ import { execFile } from "child_process";
 import { promisify } from "util";
 import { fileURLToPath } from "url";
 import path from "path";
+import os from "os";
+import fs from "fs";
 
 const execFileAsync = promisify(execFile);
 
@@ -11,21 +13,57 @@ const execFileAsync = promisify(execFile);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const HF_BIN = path.resolve(__dirname, "../../node_modules/.bin/higgsfield");
 
+// Write a credentials file from HIGGSFIELD_TOKEN env var and return its path.
+// The CLI looks for {"access_token":"...","refresh_token":"..."} in the creds file.
+function ensureCredentials(): string | undefined {
+  // If a credentials path is already set, trust it
+  if (process.env.HIGGSFIELD_CREDENTIALS_PATH) {
+    return process.env.HIGGSFIELD_CREDENTIALS_PATH;
+  }
+  const token = process.env.HIGGSFIELD_TOKEN;
+  if (!token) return undefined;
+
+  const dir = path.join(os.tmpdir(), "higgsfield-mcp");
+  fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
+  const credPath = path.join(dir, "credentials.json");
+  fs.writeFileSync(credPath, JSON.stringify({ access_token: token, refresh_token: "" }), { mode: 0o600 });
+  return credPath;
+}
+
 function buildEnv(): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = { ...process.env };
-  // Allow callers to override the credentials file path via env
-  if (process.env.HIGGSFIELD_CREDENTIALS_PATH) {
-    env.HIGGSFIELD_CREDENTIALS_PATH = process.env.HIGGSFIELD_CREDENTIALS_PATH;
-  }
+  const credPath = ensureCredentials();
+  if (credPath) env.HIGGSFIELD_CREDENTIALS_PATH = credPath;
   return env;
 }
 
 async function runHF(args: string[]): Promise<string> {
-  const { stdout, stderr } = await execFileAsync(HF_BIN, [...args, "--json", "--no-color"], {
-    env: buildEnv(),
-    timeout: 300_000, // 5 min max for --wait jobs
-  });
-  return stdout || stderr;
+  try {
+    const { stdout, stderr } = await execFileAsync(HF_BIN, [...args, "--json", "--no-color"], {
+      env: buildEnv(),
+      timeout: 300_000, // 5 min max for --wait jobs
+    });
+    return stdout || stderr;
+  } catch (err: unknown) {
+    const e = err as { stdout?: string; stderr?: string; message?: string };
+    const raw = (e.stdout || "") + (e.stderr || "") || e.message || String(err);
+
+    if (raw.includes("Not authenticated")) {
+      throw new Error(
+        "Higgsfield CLI: not authenticated.\n" +
+        "Set HIGGSFIELD_TOKEN=<your_token> in the server environment, " +
+        "or run `higgsfield auth login` in a terminal with browser access."
+      );
+    }
+    if (raw.includes("Host not in allowlist")) {
+      throw new Error(
+        "Higgsfield CLI: network access to higgsfield.ai is blocked in this environment.\n" +
+        "These tools require outbound HTTPS access to fnf.higgsfield.ai. " +
+        "Ensure the server can reach that host, or use the Higgsfield MCP server instead."
+      );
+    }
+    throw new Error(`Higgsfield CLI error: ${raw.trim()}`);
+  }
 }
 
 function ok(text: string) {
