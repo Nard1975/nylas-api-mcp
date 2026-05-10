@@ -1,0 +1,678 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="assets/gsap.min.js"></script>
+    <script src="assets/TextPlugin.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1920px; height: 1080px;
+        overflow: hidden;
+        background: #000;
+        font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      }
+
+      /* ── Scene base ── */
+      .scene {
+        position: absolute; inset: 0;
+        display: flex; align-items: center; justify-content: center;
+      }
+
+      /* ── Scene 1: Intro ── */
+      #s1-bg {
+        position: absolute; inset: 0;
+        background: radial-gradient(ellipse at 50% 50%, #0a0a1a 0%, #000 70%);
+      }
+      .grid-lines {
+        position: absolute; inset: 0;
+        background-image:
+          linear-gradient(rgba(0,200,255,0.06) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0,200,255,0.06) 1px, transparent 1px);
+        background-size: 80px 80px;
+      }
+      #s1-logo {
+        font-size: 140px; font-weight: 900; letter-spacing: -4px;
+        background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 50%, #ff006e 100%);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        text-align: center; line-height: 1;
+      }
+      #s1-tagline {
+        font-size: 36px; color: rgba(255,255,255,0.7);
+        letter-spacing: 8px; text-transform: uppercase;
+        text-align: center; margin-top: 24px;
+      }
+      #s1-badge {
+        margin-top: 40px;
+        padding: 12px 32px; border: 1px solid rgba(0,212,255,0.4);
+        border-radius: 100px; font-size: 20px;
+        color: rgba(0,212,255,0.9); letter-spacing: 3px;
+        text-align: center; width: fit-content;
+        background: rgba(0,212,255,0.05);
+      }
+      .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+             background: #00d4ff; margin-right: 10px; }
+
+      /* ── Scene 2: HTML as source ── */
+      #s2-bg {
+        position: absolute; inset: 0;
+        background: #0d1117;
+      }
+      .code-panel {
+        width: 900px; height: 640px;
+        background: #161b22; border-radius: 16px;
+        border: 1px solid rgba(255,255,255,0.08);
+        overflow: hidden; box-shadow: 0 40px 120px rgba(0,0,0,0.8);
+      }
+      .code-titlebar {
+        height: 44px; background: #21262d;
+        display: flex; align-items: center; padding: 0 16px; gap: 8px;
+      }
+      .dot-r { width: 12px; height: 12px; border-radius: 50%; background: #ff5f57; }
+      .dot-y { width: 12px; height: 12px; border-radius: 50%; background: #ffbd2e; }
+      .dot-g { width: 12px; height: 12px; border-radius: 50%; background: #28c840; }
+      .code-filename { margin-left: 12px; font-size: 13px; color: rgba(255,255,255,0.5); }
+      .code-body { padding: 28px; font-size: 18px; line-height: 1.7; }
+      .kw { color: #ff7b72; }
+      .attr { color: #79c0ff; }
+      .val { color: #a5d6ff; }
+      .str { color: #a8d3a0; }
+      .cm { color: rgba(255,255,255,0.3); }
+      .s2-label {
+        position: absolute; right: 160px; top: 50%;
+        transform: translateY(-50%);
+        width: 660px;
+      }
+      .s2-headline { font-size: 64px; font-weight: 800; color: #fff; line-height: 1.1; }
+      .s2-headline span { color: #00d4ff; }
+      .s2-sub { margin-top: 24px; font-size: 24px; color: rgba(255,255,255,0.55);
+                font-family: system-ui, sans-serif; line-height: 1.6; }
+      .arrow-right {
+        position: absolute; left: 920px; top: 50%; transform: translateY(-50%);
+        font-size: 80px; color: rgba(0,212,255,0.4);
+      }
+
+      /* ── Scene 3: Animation runtimes ── */
+      #s3-bg { position: absolute; inset: 0; background: #0a0014; }
+      .runtime-grid {
+        display: grid; grid-template-columns: repeat(3, 1fr);
+        gap: 32px; width: 1600px;
+      }
+      .runtime-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 20px; padding: 40px 36px;
+        position: relative; overflow: hidden;
+      }
+      .runtime-card::before {
+        content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+        background: var(--accent);
+      }
+      .runtime-icon { font-size: 48px; margin-bottom: 16px; }
+      .runtime-name { font-size: 32px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+      .runtime-desc { font-size: 18px; color: rgba(255,255,255,0.5);
+                       font-family: system-ui, sans-serif; line-height: 1.5; }
+      .runtime-tag {
+        display: inline-block; margin-top: 16px; padding: 6px 16px;
+        border-radius: 100px; font-size: 14px; font-weight: 600;
+        background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.6);
+        letter-spacing: 1px;
+      }
+      #s3-title {
+        position: absolute; top: 80px; left: 50%;
+        transform: translateX(-50%);
+        font-size: 52px; font-weight: 800; color: #fff;
+        text-align: center; white-space: nowrap;
+      }
+      #s3-title span { color: #7b2ff7; }
+
+      /* ── Scene 4: TTS + Captions ── */
+      #s4-bg { position: absolute; inset: 0;
+               background: linear-gradient(135deg, #0f0f23 0%, #1a0030 100%); }
+      .feature-split { display: flex; width: 1600px; gap: 80px; align-items: center; }
+      .feature-icon-block {
+        width: 440px; height: 440px; border-radius: 40px; flex-shrink: 0;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 20px;
+      }
+      .wave-bars { display: flex; gap: 8px; align-items: center; height: 120px; }
+      .bar {
+        width: 12px; border-radius: 6px; background: linear-gradient(180deg, #7b2ff7, #00d4ff);
+        transform-origin: bottom;
+      }
+      .feature-text-block { flex: 1; }
+      .feature-label { font-size: 16px; color: #7b2ff7; letter-spacing: 4px;
+                        text-transform: uppercase; margin-bottom: 16px; }
+      .feature-title { font-size: 64px; font-weight: 800; color: #fff; line-height: 1.1; margin-bottom: 24px; }
+      .feature-title span { color: #00d4ff; }
+      .feature-body { font-size: 24px; color: rgba(255,255,255,0.6);
+                       font-family: system-ui, sans-serif; line-height: 1.7; }
+      .caption-demo {
+        margin-top: 40px; padding: 20px 28px;
+        background: rgba(0,0,0,0.4); border-radius: 12px;
+        font-size: 28px; font-family: system-ui, sans-serif;
+        color: rgba(255,255,255,0.9); line-height: 1.5;
+      }
+      .cap-word { display: inline-block; transition: all 0.1s; }
+      .cap-active { color: #ffff00; font-weight: 700; }
+
+      /* ── Scene 5: Background removal ── */
+      #s5-bg { position: absolute; inset: 0; background: #080810; }
+      .bg-removal-demo {
+        display: flex; gap: 60px; align-items: center; width: 1600px;
+      }
+      .demo-box {
+        flex: 1; height: 500px; border-radius: 24px; overflow: hidden;
+        position: relative; border: 1px solid rgba(255,255,255,0.1);
+      }
+      .demo-label {
+        position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+        background: rgba(0,0,0,0.7); padding: 8px 20px; border-radius: 100px;
+        font-size: 18px; color: #fff; letter-spacing: 2px; white-space: nowrap;
+      }
+      .person-silhouette {
+        width: 200px; height: 380px; border-radius: 100px 100px 40px 40px;
+        margin: 40px auto 0;
+      }
+      .checkerboard {
+        background-image:
+          linear-gradient(45deg, #333 25%, transparent 25%),
+          linear-gradient(-45deg, #333 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, #333 75%),
+          linear-gradient(-45deg, transparent 75%, #333 75%);
+        background-size: 30px 30px;
+        background-position: 0 0, 0 15px, 15px -15px, -15px 0px;
+        background-color: #222;
+      }
+      .layer-stack {
+        flex: 1; display: flex; flex-direction: column; gap: 20px;
+      }
+      .layer-row {
+        display: flex; align-items: center; gap: 20px;
+        background: rgba(255,255,255,0.04); border-radius: 16px;
+        padding: 16px 24px; border: 1px solid rgba(255,255,255,0.06);
+      }
+      .layer-num {
+        width: 40px; height: 40px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 18px; font-weight: 700; flex-shrink: 0;
+      }
+      .layer-info { font-size: 18px; color: rgba(255,255,255,0.7);
+                    font-family: system-ui, sans-serif; }
+      .layer-name { font-weight: 600; color: #fff; font-size: 20px; }
+      #s5-title { position: relative;
+                  font-size: 52px; font-weight: 800; color: #fff; white-space: nowrap; }
+      #s5-title span { color: #ff006e; }
+
+      /* ── Scene 6: CLI workflow ── */
+      #s6-bg { position: absolute; inset: 0; background: #0d1117; }
+      .terminal {
+        width: 1100px; background: #161b22; border-radius: 20px;
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: 0 40px 120px rgba(0,0,0,0.8); overflow: hidden;
+      }
+      .term-titlebar {
+        height: 44px; background: #21262d;
+        display: flex; align-items: center; padding: 0 16px; gap: 8px;
+      }
+      .term-body { padding: 32px; font-size: 22px; line-height: 2; color: #e6edf3; }
+      .prompt { color: #3fb950; }
+      .cmd { color: #79c0ff; }
+      .output-line { color: rgba(255,255,255,0.5); padding-left: 20px; }
+      .success { color: #3fb950; }
+      .step-num {
+        display: inline-block; width: 28px; height: 28px;
+        border-radius: 50%; text-align: center; line-height: 28px;
+        font-size: 14px; font-weight: 700; margin-right: 12px;
+        background: rgba(63,185,80,0.2); color: #3fb950;
+      }
+      .s6-steps {
+        position: absolute; right: 100px; top: 50%; transform: translateY(-50%);
+        width: 580px;
+      }
+      .step-item {
+        display: flex; align-items: center; gap: 20px;
+        padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.06);
+        font-size: 24px; font-family: system-ui, sans-serif;
+      }
+      .step-item:last-child { border-bottom: none; }
+      .step-icon { font-size: 32px; width: 48px; text-align: center; }
+      .step-text { color: rgba(255,255,255,0.8); }
+      .step-text strong { color: #fff; }
+
+      /* ── Scene 7: AI agents ── */
+      #s7-bg { position: absolute; inset: 0;
+               background: radial-gradient(ellipse at 30% 50%, #001a0d 0%, #000 60%); }
+      .agents-grid {
+        display: grid; grid-template-columns: repeat(2, 1fr);
+        gap: 28px; width: 800px; flex-shrink: 0;
+      }
+      .agent-card {
+        padding: 28px 32px; border-radius: 20px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.03);
+        font-size: 22px; font-weight: 600; color: #fff;
+        display: flex; align-items: center; gap: 16px;
+      }
+      .agent-logo { font-size: 36px; }
+      .agents-text { flex: 1; padding-left: 80px; }
+      .agents-headline { font-size: 60px; font-weight: 800; color: #fff; line-height: 1.1;
+                          margin-bottom: 24px; }
+      .agents-headline span { color: #3fb950; }
+      .agents-body { font-size: 24px; color: rgba(255,255,255,0.6);
+                      font-family: system-ui, sans-serif; line-height: 1.7; }
+      .code-snippet {
+        margin-top: 32px; padding: 20px 24px;
+        background: rgba(0,0,0,0.5); border-radius: 12px;
+        border-left: 3px solid #3fb950;
+        font-size: 20px; color: rgba(255,255,255,0.8); line-height: 1.6;
+      }
+
+      /* ── Scene 8: Final CTA ── */
+      #s8-bg {
+        position: absolute; inset: 0;
+        background: radial-gradient(ellipse at 50% 40%, #0d002a 0%, #000 70%);
+      }
+      .star-field { position: absolute; inset: 0; }
+      #s8-content { text-align: center; }
+      #s8-oss {
+        font-size: 20px; letter-spacing: 6px; text-transform: uppercase;
+        color: rgba(255,255,255,0.4); margin-bottom: 32px;
+      }
+      #s8-main {
+        font-size: 120px; font-weight: 900; letter-spacing: -4px;
+        background: linear-gradient(135deg, #00d4ff 0%, #7b2ff7 50%, #ff006e 100%);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        line-height: 1;
+      }
+      #s8-sub {
+        font-size: 36px; color: rgba(255,255,255,0.6);
+        font-family: system-ui, sans-serif;
+        margin-top: 32px; letter-spacing: 2px;
+      }
+      #s8-cta {
+        margin-top: 52px; display: inline-flex; align-items: center; gap: 20px;
+        padding: 20px 48px; border-radius: 100px;
+        background: linear-gradient(135deg, #00d4ff, #7b2ff7);
+        font-size: 28px; font-weight: 700; color: #fff; letter-spacing: 1px;
+      }
+      #s8-github {
+        margin-top: 28px; font-size: 20px;
+        color: rgba(255,255,255,0.4); letter-spacing: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ════════════════════════════════════════════
+         ROOT COMPOSITION  (42 seconds)
+    ═══════════════════════════════════════════════ -->
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="42"
+      data-width="1920"
+      data-height="1080"
+    >
+
+      <!-- Narration audio -->
+      <audio
+        id="narration"
+        src="assets/narration.wav"
+        data-start="0"
+        data-duration="42"
+        data-track-index="0"
+        data-media-start="0"
+      ></audio>
+
+      <!-- ══ SCENE 1: Intro (0 – 5.5s) ══ -->
+      <div id="s1" class="clip scene"
+           data-start="0" data-duration="5.5" data-track-index="1">
+        <div id="s1-bg"></div>
+        <div class="grid-lines"></div>
+        <div style="position:relative; text-align:center;">
+          <div id="s1-logo">HyperFrames</div>
+          <div id="s1-tagline">by HeyGen</div>
+          <div id="s1-badge">
+            <span class="dot"></span>Write HTML&nbsp;&nbsp;·&nbsp;&nbsp;Render Video&nbsp;&nbsp;·&nbsp;&nbsp;Built for Agents
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SCENE 2: HTML as source (5.5 – 12s) ══ -->
+      <div id="s2" class="clip scene"
+           data-start="5.5" data-duration="6.5" data-track-index="1">
+        <div id="s2-bg"></div>
+        <div class="code-panel" style="position:absolute; left:120px; top:50%; transform:translateY(-50%);">
+          <div class="code-titlebar">
+            <div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div>
+            <div class="code-filename">index.html</div>
+          </div>
+          <div class="code-body">
+            <div><span class="kw">&lt;div</span></div>
+            <div style="padding-left:32px;"><span class="attr">data-composition-id</span>=<span class="str">"main"</span></div>
+            <div style="padding-left:32px;"><span class="attr">data-start</span>=<span class="str">"0"</span></div>
+            <div style="padding-left:32px;"><span class="attr">data-duration</span>=<span class="str">"42"</span></div>
+            <div style="padding-left:32px;"><span class="attr">data-width</span>=<span class="str">"1920"</span></div>
+            <div style="padding-left:32px;"><span class="attr">data-height</span>=<span class="str">"1080"</span></div>
+            <div><span class="kw">&gt;</span></div>
+            <div style="padding-left:32px; margin-top:8px;"><span class="cm">&lt;!-- your clips --&gt;</span></div>
+            <div><span class="kw">&lt;/div&gt;</span></div>
+            <div style="margin-top:16px; color:#3fb950; font-size:16px;">
+              ↓ renders to ↓
+            </div>
+            <div style="margin-top:8px; padding:10px 16px; background:rgba(63,185,80,0.1);
+                        border-radius:8px; border:1px solid rgba(63,185,80,0.2);
+                        font-size:16px; color:#3fb950;">
+              output.mp4 &nbsp;·&nbsp; 1920×1080 &nbsp;·&nbsp; 30fps
+            </div>
+          </div>
+        </div>
+        <div class="arrow-right">→</div>
+        <div class="s2-label">
+          <div class="s2-headline">HTML is the<br><span>source of truth</span></div>
+          <div class="s2-sub">
+            Plain HTML with CSS &amp; JavaScript.<br>
+            No proprietary DSL. No React required.<br>
+            Same input → identical output. Every time.
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SCENE 3: Animation runtimes (12 – 20s) ══ -->
+      <div id="s3" class="clip scene" style="flex-direction:column; gap:40px;"
+           data-start="12" data-duration="8" data-track-index="1">
+        <div id="s3-bg"></div>
+        <div id="s3-title" style="position:relative; transform:none; left:auto;">
+          <span style="color:#7b2ff7;">6</span> Animation Runtimes. All First-Class.
+        </div>
+        <div class="runtime-grid" style="position:relative;">
+          <div class="runtime-card" id="rc1" style="--accent:#ff7b72;">
+            <div class="runtime-icon">⚡</div>
+            <div class="runtime-name">GSAP</div>
+            <div class="runtime-desc">Industry-standard tweens &amp; timelines. Registered on window.__timelines.</div>
+            <div class="runtime-tag">gsap.timeline()</div>
+          </div>
+          <div class="runtime-card" id="rc2" style="--accent:#79c0ff;">
+            <div class="runtime-icon">🎨</div>
+            <div class="runtime-name">CSS Animations</div>
+            <div class="runtime-desc">@keyframes that HyperFrames can pause, seek, and scrub precisely.</div>
+            <div class="runtime-tag">animation-play-state</div>
+          </div>
+          <div class="runtime-card" id="rc3" style="--accent:#a5d6ff;">
+            <div class="runtime-icon">🌐</div>
+            <div class="runtime-name">Three.js</div>
+            <div class="runtime-desc">3D WebGL scenes driven by hf-seek events on every frame.</div>
+            <div class="runtime-tag">hf-seek event</div>
+          </div>
+          <div class="runtime-card" id="rc4" style="--accent:#ffa657;">
+            <div class="runtime-icon">✨</div>
+            <div class="runtime-name">Lottie</div>
+            <div class="runtime-desc">dotLottie &amp; lottie-web players registered on window.__hfLottie.</div>
+            <div class="runtime-tag">window.__hfLottie</div>
+          </div>
+          <div class="runtime-card" id="rc5" style="--accent:#ff79c6;">
+            <div class="runtime-icon">🎬</div>
+            <div class="runtime-name">Anime.js</div>
+            <div class="runtime-desc">Lightweight anime timelines registered on window.__hfAnime.</div>
+            <div class="runtime-tag">window.__hfAnime</div>
+          </div>
+          <div class="runtime-card" id="rc6" style="--accent:#3fb950;">
+            <div class="runtime-icon">🎯</div>
+            <div class="runtime-name">WAAPI</div>
+            <div class="runtime-desc">Web Animations API via document.getAnimations(). Zero deps.</div>
+            <div class="runtime-tag">KeyframeEffect</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SCENE 4: TTS + Captions (20 – 27s) ══ -->
+      <div id="s4" class="clip scene"
+           data-start="20" data-duration="7" data-track-index="1">
+        <div id="s4-bg"></div>
+        <div class="feature-split">
+          <div class="feature-icon-block" style="background:rgba(123,47,247,0.1);
+               border:1px solid rgba(123,47,247,0.2);">
+            <div class="wave-bars" id="wave-bars">
+              <div class="bar" style="height:40px;"></div>
+              <div class="bar" style="height:80px;"></div>
+              <div class="bar" style="height:110px;"></div>
+              <div class="bar" style="height:90px;"></div>
+              <div class="bar" style="height:60px;"></div>
+              <div class="bar" style="height:100px;"></div>
+              <div class="bar" style="height:75px;"></div>
+              <div class="bar" style="height:50px;"></div>
+              <div class="bar" style="height:95px;"></div>
+              <div class="bar" style="height:65px;"></div>
+            </div>
+            <div style="font-size:20px; color:rgba(255,255,255,0.5); letter-spacing:3px; text-transform:uppercase;">Kokoro TTS · No API Key</div>
+          </div>
+          <div class="feature-text-block">
+            <div class="feature-label">Capability 03</div>
+            <div class="feature-title">Text-to-Speech<br>&amp; <span>Captions</span></div>
+            <div class="feature-body">
+              Generate narration locally with <strong style="color:#fff;">Kokoro-82M</strong>.<br>
+              54 voices · 9 languages · No API key.<br>
+              Word-level timestamps via <strong style="color:#fff;">Whisper</strong>.
+            </div>
+            <div class="caption-demo">
+              <span class="cap-word" id="cw1">HyperFrames</span>&nbsp;
+              <span class="cap-word cap-active" id="cw2">generates</span>&nbsp;
+              <span class="cap-word" id="cw3">your</span>&nbsp;
+              <span class="cap-word" id="cw4">narration</span>&nbsp;
+              <span class="cap-word" id="cw5">locally</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SCENE 5: Background removal (27 – 33s) ══ -->
+      <div id="s5" class="clip scene" style="flex-direction:column; gap:32px;"
+           data-start="27" data-duration="6" data-track-index="1">
+        <div id="s5-bg"></div>
+        <div id="s5-title">
+          Background <span>Removal</span> &amp; Compositing
+        </div>
+        <div class="bg-removal-demo">
+          <div class="demo-box" style="background:linear-gradient(135deg,#1a1a2e,#16213e);">
+            <svg viewBox="0 0 400 500" style="width:100%;height:100%;opacity:0.6;">
+              <ellipse cx="200" cy="130" rx="80" ry="90" fill="#4a5568"/>
+              <rect x="130" y="200" width="140" height="200" rx="20" fill="#4a5568"/>
+            </svg>
+            <div class="demo-label">Original</div>
+          </div>
+          <div style="font-size:60px; color:rgba(255,0,110,0.6); flex-shrink:0;">→</div>
+          <div class="demo-box checkerboard">
+            <svg viewBox="0 0 400 500" style="width:100%;height:100%;">
+              <ellipse cx="200" cy="130" rx="80" ry="90" fill="#718096"/>
+              <rect x="130" y="200" width="140" height="200" rx="20" fill="#718096"/>
+            </svg>
+            <div class="demo-label">Cutout (.webm)</div>
+          </div>
+          <div style="font-size:60px; color:rgba(255,0,110,0.6); flex-shrink:0;">+</div>
+          <div class="demo-box" style="background:linear-gradient(135deg,#0d1b2a,#1b2838);">
+            <div style="padding:30px; font-size:36px; font-weight:800; color:#fff; line-height:1.2; margin-top:40px;">
+              ANY<br><span style="color:#00d4ff;">background</span><br>you want
+            </div>
+            <div class="demo-label">Composite</div>
+          </div>
+        </div>
+        <div class="layer-stack" style="width:1600px;">
+          <div style="display:flex; gap:28px;">
+            <div class="layer-row" style="flex:1;">
+              <div class="layer-num" style="background:rgba(0,212,255,0.15);color:#00d4ff;">1</div>
+              <div class="layer-info"><div class="layer-name">Background scene</div>Custom video or image</div>
+            </div>
+            <div class="layer-row" style="flex:1;">
+              <div class="layer-num" style="background:rgba(255,0,110,0.15);color:#ff006e;">2</div>
+              <div class="layer-info"><div class="layer-name">Text &amp; graphics</div>Between the layers</div>
+            </div>
+            <div class="layer-row" style="flex:1;">
+              <div class="layer-num" style="background:rgba(63,185,80,0.15);color:#3fb950;">3</div>
+              <div class="layer-info"><div class="layer-name">Subject cutout</div>Floats above everything</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SCENE 6: CLI workflow (33 – 38s) ══ -->
+      <div id="s6" class="clip scene"
+           data-start="33" data-duration="5" data-track-index="1">
+        <div id="s6-bg"></div>
+        <div class="terminal">
+          <div class="term-titlebar">
+            <div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div>
+            <div class="code-filename">Terminal — npx hyperframes</div>
+          </div>
+          <div class="term-body">
+            <div><span class="prompt">$</span> <span class="cmd">npx hyperframes init my-video</span></div>
+            <div class="output-line success">✓ Created my-video/ with blank composition</div>
+            <div style="margin-top:12px;"><span class="prompt">$</span> <span class="cmd">npx hyperframes lint</span></div>
+            <div class="output-line success">✓ No errors · 0 warnings</div>
+            <div style="margin-top:12px;"><span class="prompt">$</span> <span class="cmd">npx hyperframes inspect</span></div>
+            <div class="output-line success">✓ No layout overflow detected</div>
+            <div style="margin-top:12px;"><span class="prompt">$</span> <span class="cmd">npx hyperframes render --quality high</span></div>
+            <div class="output-line success">✓ Rendered → renders/output_1920x1080.mp4</div>
+          </div>
+        </div>
+        <div class="s6-steps">
+          <div class="step-item" id="step1">
+            <div class="step-icon">🚀</div>
+            <div class="step-text"><strong>Init</strong> — scaffold a project instantly</div>
+          </div>
+          <div class="step-item" id="step2">
+            <div class="step-icon">✍️</div>
+            <div class="step-text"><strong>Write</strong> — HTML + CSS + JS composition</div>
+          </div>
+          <div class="step-item" id="step3">
+            <div class="step-icon">🔍</div>
+            <div class="step-text"><strong>Lint &amp; Inspect</strong> — catch errors early</div>
+          </div>
+          <div class="step-item" id="step4">
+            <div class="step-icon">👁️</div>
+            <div class="step-text"><strong>Preview</strong> — hot-reload in browser</div>
+          </div>
+          <div class="step-item" id="step5">
+            <div class="step-icon">🎬</div>
+            <div class="step-text"><strong>Render</strong> — MP4, WebM, draft or high quality</div>
+          </div>
+          <div class="step-item" id="step6">
+            <div class="step-icon">🌐</div>
+            <div class="step-text"><strong>Publish</strong> — get a shareable link instantly</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SCENE 7: Final CTA (38 – 42s) ══ -->
+      <div id="s7" class="clip scene"
+           data-start="38" data-duration="4" data-track-index="1">
+        <div id="s8-bg"></div>
+        <div id="s8-content" style="position:relative;">
+          <div id="s8-oss">Open Source · Apache 2.0</div>
+          <div id="s8-main">HyperFrames</div>
+          <div id="s8-sub">Write HTML. Render Video. Built for Agents.</div>
+          <div style="margin-top:48px; display:flex; gap:32px; justify-content:center; align-items:center;">
+            <div id="s8-cta">⬡ hyperframes.heygen.com</div>
+            <div style="padding:20px 36px; border:1px solid rgba(255,255,255,0.2);
+                         border-radius:100px; font-size:24px; color:rgba(255,255,255,0.6);">
+              github.com/heygen-com/hyperframes
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /root -->
+
+    <script>
+      gsap.registerPlugin(TextPlugin);
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // ── Scene 1: Intro ──
+      tl.from("#s1-logo",    { opacity: 0, y: 60, duration: 1.2, ease: "expo.out" }, 0);
+      tl.from("#s1-tagline", { opacity: 0, y: 30, duration: 0.8, ease: "expo.out" }, 0.5);
+      tl.from("#s1-badge",   { opacity: 0, scale: 0.8, duration: 0.8, ease: "back.out(2)" }, 0.9);
+      // pulse glow on logo
+      tl.to("#s1-logo", { filter: "brightness(1.4)", duration: 0.6, yoyo: true, repeat: 1 }, 1.5);
+      // grid drift
+      tl.to(".grid-lines", { backgroundPositionX: "+=80px", backgroundPositionY: "+=80px",
+        duration: 5, ease: "none" }, 0);
+
+      // ── Scene 2: Code panel ──
+      tl.from("#s2 .code-panel", { opacity: 0, x: -80, duration: 1, ease: "expo.out" }, 5.5);
+      tl.from("#s2 .s2-label",   { opacity: 0, x: 60, duration: 1, ease: "expo.out" }, 5.8);
+      tl.from("#s2 .arrow-right", { opacity: 0, scale: 0, duration: 0.6, ease: "back.out(2)" }, 6.2);
+      // highlight each code line
+      tl.from("#s2 .code-body > div", {
+        opacity: 0, x: -20, stagger: 0.12, duration: 0.5, ease: "power2.out"
+      }, 5.7);
+
+      // ── Scene 3: Runtime cards ──
+      tl.from("#rc1,#rc2,#rc3,#rc4,#rc5,#rc6", {
+        opacity: 0, y: 50, scale: 0.9,
+        stagger: 0.12, duration: 0.7, ease: "back.out(1.5)"
+      }, 12.2);
+      // card hover pulse
+      tl.to("#rc1,#rc3,#rc5", {
+        boxShadow: "0 0 40px rgba(255,123,114,0.2)",
+        duration: 0.8, yoyo: true, repeat: 3, stagger: 0.3
+      }, 13);
+      tl.to("#rc2,#rc4,#rc6", {
+        boxShadow: "0 0 40px rgba(121,192,255,0.2)",
+        duration: 0.8, yoyo: true, repeat: 3, stagger: 0.3
+      }, 13.3);
+
+      // ── Scene 4: Wave bars animation ──
+      const bars = document.querySelectorAll(".bar");
+      bars.forEach((bar, i) => {
+        tl.to(bar, {
+          scaleY: gsap.utils.random(0.3, 1.0, true),
+          duration: 0.2, ease: "power1.inOut", repeat: 16, yoyo: true,
+          delay: i * 0.07
+        }, 20.1);
+      });
+      tl.from("#s4 .feature-icon-block", { opacity: 0, x: -60, duration: 0.9, ease: "expo.out" }, 20);
+      tl.from("#s4 .feature-text-block > *", {
+        opacity: 0, y: 30, stagger: 0.15, duration: 0.7, ease: "power2.out"
+      }, 20.3);
+      // Caption word cycling
+      const capCycle = (startTime) => {
+        const words = ["#cw1","#cw2","#cw3","#cw4","#cw5"];
+        words.forEach((w, i) => {
+          tl.set(w, { className: "cap-word" + (i===0 ? " cap-active" : "") }, startTime);
+        });
+        words.forEach((w, i) => {
+          tl.set(w, { className: "cap-word cap-active" }, startTime + i * 0.5);
+          if (i > 0) tl.set(words[i-1], { className: "cap-word" }, startTime + i * 0.5);
+        });
+      };
+      capCycle(21);
+      capCycle(23.5);
+
+      // ── Scene 5: Bg removal ──
+      tl.from("#s5-title", { opacity: 0, y: -40, duration: 0.8, ease: "expo.out" }, 27);
+      tl.from("#s5 .demo-box", { opacity: 0, scale: 0.85, stagger: 0.2, duration: 0.8, ease: "back.out(1.5)" }, 27.3);
+      tl.from("#s5 .layer-row", { opacity: 0, x: -30, stagger: 0.15, duration: 0.6, ease: "power2.out" }, 28.2);
+
+      // ── Scene 6: CLI ──
+      tl.from("#s6 .terminal", { opacity: 0, x: -80, duration: 1, ease: "expo.out" }, 33);
+      tl.from("#s6 .term-body > div", {
+        opacity: 0, y: 10, stagger: 0.22, duration: 0.5, ease: "power2.out"
+      }, 33.3);
+      tl.from("#step1,#step2,#step3,#step4,#step5,#step6", {
+        opacity: 0, x: 40, stagger: 0.12, duration: 0.5, ease: "power2.out"
+      }, 33.5);
+
+      // ── Scene 7: Final CTA ──
+      tl.from("#s8-oss",    { opacity: 0, y: 30, duration: 0.7, ease: "expo.out" }, 38);
+      tl.from("#s8-main",   { opacity: 0, y: 60, scale: 0.9, duration: 1, ease: "expo.out" }, 38.3);
+      tl.from("#s8-sub",    { opacity: 0, y: 20, duration: 0.7, ease: "expo.out" }, 39);
+      tl.from("#s8-cta",    { opacity: 0, scale: 0.8, duration: 0.8, ease: "back.out(2)" }, 39.5);
+      tl.from("#s8-content > div:last-child > div:last-child",
+        { opacity: 0, y: 20, duration: 0.6, ease: "power2.out" }, 40);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
