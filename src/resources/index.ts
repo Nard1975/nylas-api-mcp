@@ -4,6 +4,7 @@ import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mc
 import { registerDocsResources } from "./docs.js";
 import { registerCodeSamplesResources } from "./code-samples.js";
 import { registerEndpointResources } from "./endpoints.js";
+import { registerLtxVideoResources } from "./ltx-video.js";
 
 /**
  * Register all resources with the MCP server
@@ -20,6 +21,9 @@ export function registerResources(server: McpServer) {
   
   // Register endpoint documentation
   registerEndpointResources(server);
+
+  // Register LTX Video resources
+  registerLtxVideoResources(server);
 }
 
 /**

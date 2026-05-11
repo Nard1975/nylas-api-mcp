@@ -1,5 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { registerLtxVideoTools } from "./ltx-video.js";
 
 /**
  * Register all tools with the MCP server
@@ -7,9 +8,12 @@ import { z } from "zod";
 export function registerTools(server: McpServer) {
   // Register code generation tools
   registerCodeGenerationTools(server);
-  
+
   // Register API explorer tools
   registerApiExplorerTools(server);
+
+  // Register LTX Video tools
+  registerLtxVideoTools(server);
 }
 
 /**
