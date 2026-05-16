@@ -34,7 +34,19 @@ LOG=/tmp/session-start-hook.log
   if [ -f package.json ]; then
     npm install --no-audit --no-fund
   fi
+
+  # HyperFrames renders via headless Chrome. Fetch the bundled build
+  # (idempotent — skips if already cached) so `npx hyperframes render`
+  # works non-interactively in web sessions.
+  if [ -d .agents/skills/hyperframes ]; then
+    npx --yes hyperframes@latest browser ensure || echo "hyperframes browser ensure failed -- rendering may need Chrome"
+  fi
 } >"$LOG" 2>&1
 
 ffmpeg_ver="$(ffmpeg -version 2>/dev/null | head -1 | awk '{print $3}')"
-echo "session-start hook: ffmpeg ${ffmpeg_ver:-MISSING} ready, npm deps installed (log: $LOG)"
+if find "$HOME/.cache/hyperframes" -name chrome-headless-shell -type f 2>/dev/null | grep -q .; then
+  chrome_ok=yes
+else
+  chrome_ok=no
+fi
+echo "session-start hook: ffmpeg ${ffmpeg_ver:-MISSING} ready, npm deps installed, hyperframes chrome=${chrome_ok} (log: $LOG)"
