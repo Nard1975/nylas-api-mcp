@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>HyperFrames Showcase — nylas-api-mcp</title>
+    <script src="vendor/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #05060c;
+        font-family:
+          "Inter", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        color: #f4f6fb;
+      }
+
+      .scene {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        overflow: hidden;
+      }
+
+      .kicker {
+        position: absolute;
+        top: 96px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 26px;
+        letter-spacing: 0.42em;
+        text-transform: uppercase;
+        color: #5f6b8c;
+        font-weight: 700;
+      }
+      .scene-title {
+        font-size: 116px;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        text-align: center;
+        line-height: 1.02;
+      }
+      .scene-sub {
+        margin-top: 26px;
+        font-size: 34px;
+        color: #00e5ff;
+        font-weight: 600;
+      }
+
+      /* ---------- transition wipe ---------- */
+      #wipe {
+        position: absolute;
+        inset: 0;
+        background: #00e5ff;
+        z-index: 90;
+        transform: scaleX(0);
+        transform-origin: left center;
+      }
+
+      /* ---------- S1 intro ---------- */
+      #s1 {
+        background: radial-gradient(circle at 50% 38%, #16213f 0%, #05060c 60%);
+        opacity: 1;
+      }
+      .intro-word {
+        font-size: 168px;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        background: linear-gradient(120deg, #ffffff, #6fe3ff 55%, #a76bff);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        opacity: 0;
+        transform: translateY(60px);
+      }
+      .intro-sub {
+        margin-top: 20px;
+        font-size: 40px;
+        color: #aab4d4;
+        opacity: 0;
+      }
+      .intro-tag {
+        position: absolute;
+        bottom: 90px;
+        font-size: 22px;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: #4a5578;
+        opacity: 0;
+      }
+
+      /* ---------- S2 GSAP easing ---------- */
+      #s2 {
+        background: linear-gradient(135deg, #0a1228, #1a0f33);
+      }
+      .ease-row {
+        display: flex;
+        gap: 46px;
+        margin-top: 40px;
+      }
+      .ease-card {
+        width: 220px;
+        height: 300px;
+        border-radius: 22px;
+        background: linear-gradient(160deg, #1f9bff, #8a5bff);
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding-bottom: 22px;
+        font-size: 22px;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.92);
+        transform: translateY(720px);
+      }
+
+      /* ---------- S3 CSS keyframes ---------- */
+      #s3 {
+        background: radial-gradient(circle at 70% 30%, #15243a, #06070f 65%);
+      }
+      .css-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 150px);
+        grid-gap: 56px;
+        margin-top: 36px;
+      }
+      .css-cell {
+        width: 150px;
+        height: 150px;
+        border-radius: 26px;
+        background: conic-gradient(from 0deg, #00e5ff, #a76bff, #ff5d8f, #00e5ff);
+        animation-name: spinpulse;
+        animation-duration: 2600ms;
+        animation-timing-function: cubic-bezier(0.6, 0, 0.2, 1);
+        animation-iteration-count: 3;
+        animation-fill-mode: both;
+      }
+      .css-cell:nth-child(2) { animation-delay: 140ms; }
+      .css-cell:nth-child(3) { animation-delay: 280ms; }
+      .css-cell:nth-child(4) { animation-delay: 420ms; }
+      .css-cell:nth-child(5) { animation-delay: 560ms; }
+      .css-cell:nth-child(6) { animation-delay: 700ms; }
+      .css-cell:nth-child(7) { animation-delay: 840ms; }
+      .css-cell:nth-child(8) { animation-delay: 980ms; }
+      @keyframes spinpulse {
+        0% { transform: rotate(0deg) scale(0.55); border-radius: 26px; opacity: 0.35; }
+        50% { transform: rotate(180deg) scale(1.05); border-radius: 50%; opacity: 1; }
+        100% { transform: rotate(360deg) scale(0.55); border-radius: 26px; opacity: 0.35; }
+      }
+
+      /* ---------- S4 three.js ---------- */
+      #s4 {
+        background: #04050b;
+      }
+      #three-canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      #s4 .kicker,
+      #s4 .scene-title-wrap {
+        position: absolute;
+        z-index: 2;
+      }
+      #s4 .scene-title-wrap {
+        bottom: 96px;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+      }
+
+      /* ---------- S5 data in motion ---------- */
+      #s5 {
+        background: linear-gradient(135deg, #07101f, #1a1030);
+      }
+      .chart {
+        display: flex;
+        align-items: flex-end;
+        gap: 64px;
+        height: 540px;
+        margin-top: 30px;
+      }
+      .bar-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        height: 100%;
+      }
+      .bar {
+        width: 150px;
+        border-radius: 16px 16px 0 0;
+        background: linear-gradient(180deg, #00e5ff, #4a7bff);
+        transform: scaleY(0);
+        transform-origin: bottom center;
+      }
+      .bar.b2 { background: linear-gradient(180deg, #a76bff, #6a3bff); }
+      .bar.b3 { background: linear-gradient(180deg, #ff7aa8, #ff4d7d); }
+      .bar.b4 { background: linear-gradient(180deg, #ffd166, #ff9f1c); }
+      .bar-num {
+        font-size: 56px;
+        font-weight: 900;
+        margin-bottom: 18px;
+      }
+      .bar-label {
+        margin-top: 22px;
+        font-size: 26px;
+        color: #8b97ba;
+        font-weight: 600;
+      }
+
+      /* ---------- S6 SVG vector + audio-reactive ---------- */
+      #s6 {
+        background: radial-gradient(circle at 30% 70%, #1b1140, #06070f 60%);
+      }
+      #vector-svg {
+        width: 560px;
+        height: 360px;
+      }
+      #vector-svg path {
+        fill: none;
+        stroke: url(#vgrad);
+        stroke-width: 9;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .eq {
+        display: flex;
+        align-items: flex-end;
+        gap: 14px;
+        height: 200px;
+        margin-top: 56px;
+      }
+      .eq span {
+        width: 26px;
+        height: 180px;
+        border-radius: 8px;
+        background: linear-gradient(180deg, #00e5ff, #a76bff);
+        transform-origin: bottom center;
+      }
+
+      /* ---------- S7 outro ---------- */
+      #s7 {
+        background: radial-gradient(circle at 50% 50%, #122047, #05060c 62%);
+      }
+      .flash {
+        position: absolute;
+        inset: 0;
+        transform: scaleY(0);
+        transform-origin: top center;
+      }
+      #flash1 { background: #00e5ff; }
+      #flash2 { background: #a76bff; }
+      #flash3 { background: #ff5d8f; }
+      .outro-title {
+        font-size: 132px;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        text-align: center;
+        opacity: 0;
+        transform: scale(0.86);
+        z-index: 4;
+      }
+      .outro-sub {
+        margin-top: 28px;
+        font-size: 36px;
+        color: #00e5ff;
+        font-weight: 600;
+        opacity: 0;
+        z-index: 4;
+      }
+      .outro-tag {
+        position: absolute;
+        bottom: 84px;
+        font-size: 22px;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: #5a6488;
+        opacity: 0;
+        z-index: 4;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="24"
+      data-width="1920"
+      data-height="1080"
+    >
+      <!-- ===== S1 — Intro (GSAP kinetic type) ===== -->
+      <div id="s1" class="scene">
+        <div class="intro-word" id="iw1">HyperFrames</div>
+        <div class="intro-sub" id="isub">everything it can do — in one render</div>
+        <div class="intro-tag" id="itag">examples / hyperframes-showcase</div>
+      </div>
+
+      <!-- ===== S2 — GSAP timelines & easing ===== -->
+      <div id="s2" class="scene">
+        <div class="kicker">GSAP timelines</div>
+        <div class="scene-title">Easing &amp; choreography</div>
+        <div class="ease-row" data-layout-allow-overflow>
+          <div class="ease-card" id="ec1">power4</div>
+          <div class="ease-card" id="ec2">back</div>
+          <div class="ease-card" id="ec3">elastic</div>
+          <div class="ease-card" id="ec4">expo</div>
+        </div>
+      </div>
+
+      <!-- ===== S3 — CSS keyframe adapter ===== -->
+      <div id="s3" class="scene">
+        <div class="kicker">CSS keyframes</div>
+        <div class="scene-title">Seekable CSS motion</div>
+        <div class="css-grid" id="cssgrid">
+          <div class="css-cell"></div>
+          <div class="css-cell"></div>
+          <div class="css-cell"></div>
+          <div class="css-cell"></div>
+          <div class="css-cell"></div>
+          <div class="css-cell"></div>
+          <div class="css-cell"></div>
+          <div class="css-cell"></div>
+        </div>
+      </div>
+
+      <!-- ===== S4 — Three.js / WebGL ===== -->
+      <div id="s4" class="scene">
+        <canvas id="three-canvas" data-layout-allow-overflow></canvas>
+        <div class="kicker">WebGL · Three.js</div>
+        <div class="scene-title-wrap">
+          <div class="scene-title" style="font-size: 96px">Real 3D, deterministic</div>
+          <div class="scene-sub">WebGL geometry, lighting &amp; depth</div>
+        </div>
+      </div>
+
+      <!-- ===== S5 — Data in motion ===== -->
+      <div id="s5" class="scene">
+        <div class="kicker">Data in motion</div>
+        <div class="scene-title" style="font-size: 92px">Charts that animate</div>
+        <div class="chart">
+          <div class="bar-wrap">
+            <div class="bar-num" id="n1">92</div>
+            <div class="bar b1" id="bar1" style="height: 420px"></div>
+            <div class="bar-label">GSAP</div>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar-num" id="n2">67</div>
+            <div class="bar b2" id="bar2" style="height: 300px"></div>
+            <div class="bar-label">CSS</div>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar-num" id="n3">100</div>
+            <div class="bar b3" id="bar3" style="height: 500px"></div>
+            <div class="bar-label">WebGL</div>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar-num" id="n4">54</div>
+            <div class="bar b4" id="bar4" style="height: 250px"></div>
+            <div class="bar-label">SVG</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== S6 — SVG vector draw + audio-reactive ===== -->
+      <div id="s6" class="scene">
+        <div class="kicker">Vector &amp; audio-reactive</div>
+        <div class="scene-title" style="font-size: 92px">SVG draw-on + EQ</div>
+        <svg id="vector-svg" viewBox="0 0 560 360">
+          <defs>
+            <linearGradient id="vgrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#00e5ff" />
+              <stop offset="100%" stop-color="#a76bff" />
+            </linearGradient>
+          </defs>
+          <path
+            id="vpath"
+            d="M60 300 L60 120 Q60 60 130 60 Q200 60 200 130 L200 300 M200 180 L320 180 M320 300 L320 60 M320 60 L430 60 Q500 60 500 130 Q500 200 430 200 L320 200"
+          />
+        </svg>
+        <div class="eq" id="eq"></div>
+      </div>
+
+      <!-- ===== S7 — Transitions montage + outro ===== -->
+      <div id="s7" class="scene">
+        <div class="flash" id="flash1"></div>
+        <div class="flash" id="flash2"></div>
+        <div class="flash" id="flash3"></div>
+        <div class="outro-title" id="otitle">Write HTML.<br />Render video.</div>
+        <div class="outro-sub" id="osub">15 skills · GSAP · CSS · WebGL · SVG</div>
+        <div class="outro-tag" id="otag">npm run render — examples/hyperframes-showcase</div>
+      </div>
+
+      <!-- transition wipe element (top z) -->
+      <div id="wipe"></div>
+    </div>
+
+    <!-- ===== Three.js scene: deterministic, rendered from hf-seek ===== -->
+    <script src="vendor/three.min.js"></script>
+    <script>
+      const canvas = document.getElementById("three-canvas");
+      const renderer = new THREE.WebGLRenderer({
+        canvas,
+        alpha: true,
+        antialias: true,
+      });
+      renderer.setSize(1920, 1080, false);
+      renderer.setPixelRatio(1);
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(38, 1920 / 1080, 0.1, 100);
+      camera.position.set(0, 0, 6.4);
+
+      const core = new THREE.Mesh(
+        new THREE.IcosahedronGeometry(1.7, 1),
+        new THREE.MeshStandardMaterial({
+          color: 0x16c8ff,
+          roughness: 0.32,
+          metalness: 0.4,
+          flatShading: true,
+        }),
+      );
+      scene.add(core);
+
+      const wire = new THREE.LineSegments(
+        new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(2.05, 1)),
+        new THREE.LineBasicMaterial({ color: 0xa76bff }),
+      );
+      scene.add(wire);
+
+      scene.add(new THREE.HemisphereLight(0xffffff, 0x182038, 2.1));
+      const key = new THREE.DirectionalLight(0xffffff, 1.6);
+      key.position.set(3, 4, 5);
+      scene.add(key);
+
+      // Deterministic particle field (seeded LCG — no Math.random).
+      let seed = 1337;
+      const rand = () => {
+        seed = (seed * 1664525 + 1013904223) % 4294967296;
+        return seed / 4294967296;
+      };
+      const N = 220;
+      const pgeo = new THREE.BufferGeometry();
+      const pos = new Float32Array(N * 3);
+      for (let i = 0; i < N; i++) {
+        const r = 3.2 + rand() * 3.4;
+        const a = rand() * Math.PI * 2;
+        const b = Math.acos(2 * rand() - 1);
+        pos[i * 3] = r * Math.sin(b) * Math.cos(a);
+        pos[i * 3 + 1] = r * Math.sin(b) * Math.sin(a);
+        pos[i * 3 + 2] = r * Math.cos(b);
+      }
+      pgeo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+      const particles = new THREE.Points(
+        pgeo,
+        new THREE.PointsMaterial({ color: 0x6fe3ff, size: 0.045 }),
+      );
+      scene.add(particles);
+
+      function renderAt(t) {
+        core.rotation.y = t * 0.7;
+        core.rotation.x = Math.sin(t * 0.55) * 0.35;
+        wire.rotation.y = -t * 0.45;
+        wire.rotation.x = Math.cos(t * 0.4) * 0.3;
+        particles.rotation.y = t * 0.12;
+        const s = 1 + Math.sin(t * 1.6) * 0.06;
+        core.scale.setScalar(s);
+        renderer.render(scene, camera);
+      }
+
+      window.addEventListener("hf-seek", (e) => renderAt(e.detail.time));
+      renderAt(window.__hfThreeTime || 0);
+    </script>
+
+    <!-- ===== Master GSAP timeline ===== -->
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // helper: hard scene swap with a colored wipe transition
+      function wipe(at, fromColor) {
+        tl.set("#wipe", { backgroundColor: fromColor, transformOrigin: "left center" }, at);
+        tl.fromTo(
+          "#wipe",
+          { scaleX: 0 },
+          { scaleX: 1, duration: 0.26, ease: "power3.in", overwrite: "auto" },
+          at,
+        );
+        tl.set("#wipe", { transformOrigin: "right center" }, at + 0.28);
+        tl.to(
+          "#wipe",
+          { scaleX: 0, duration: 0.26, ease: "power3.out", overwrite: "auto" },
+          at + 0.3,
+        );
+      }
+
+      // ---------- S1 intro 0–3.4 ----------
+      tl.set("#s1", { opacity: 1 }, 0);
+      tl.to("#iw1", { opacity: 1, y: 0, duration: 0.9, ease: "expo.out" }, 0.25);
+      tl.to("#isub", { opacity: 1, duration: 0.6 }, 0.95);
+      tl.to("#itag", { opacity: 1, duration: 0.6 }, 1.4);
+      tl.to("#s1", { opacity: 0, duration: 0.3 }, 3.2);
+
+      wipe(3.25, "#00e5ff");
+
+      // ---------- S2 GSAP easing 3.5–6.9 ----------
+      tl.set("#s2", { opacity: 1 }, 3.5);
+      tl.to("#ec1", { y: 0, duration: 1.0, ease: "power4.out" }, 3.7);
+      tl.to("#ec2", { y: 0, duration: 1.0, ease: "back.out(2.2)" }, 3.85);
+      tl.to("#ec3", { y: 0, duration: 1.2, ease: "elastic.out(1, 0.45)" }, 4.0);
+      tl.to("#ec4", { y: 0, duration: 1.0, ease: "expo.out" }, 4.15);
+      tl.to(".ease-row", { y: -10, duration: 1.4, ease: "sine.inOut", yoyo: true, repeat: 1 }, 5.0);
+      tl.to("#s2", { opacity: 0, duration: 0.3 }, 6.7);
+
+      wipe(6.75, "#a76bff");
+
+      // ---------- S3 CSS keyframes 7.0–10.4 ----------
+      tl.set("#s3", { opacity: 1 }, 7.0);
+      tl.from("#cssgrid", { scale: 0.7, opacity: 0, duration: 0.6, ease: "power2.out" }, 7.05);
+      tl.to("#s3", { opacity: 0, duration: 0.3 }, 10.2);
+
+      wipe(10.25, "#ff5d8f");
+
+      // ---------- S4 three.js 10.5–14.9 ----------
+      tl.set("#s4", { opacity: 1 }, 10.5);
+      // The Three.js scene is a real WebGL render. Its frame-to-frame motion
+      // would come from HyperFrames' hf-seek adapter; in environments where
+      // that adapter is inactive the geometry still renders, so GSAP gives
+      // the layer life with a slow seek-safe scale/rotate on the canvas.
+      tl.fromTo(
+        "#three-canvas",
+        { scale: 1.06, rotation: -4 },
+        { scale: 1.16, rotation: 4, duration: 4.1, ease: "sine.inOut" },
+        10.5,
+      );
+      tl.from("#s4 .kicker", { opacity: 0, y: -20, duration: 0.6 }, 10.6);
+      tl.from(
+        "#s4 .scene-title-wrap",
+        { opacity: 0, y: 30, duration: 0.7, ease: "power2.out" },
+        10.8,
+      );
+      tl.to("#s4", { opacity: 0, duration: 0.35 }, 14.6);
+
+      wipe(14.65, "#00e5ff");
+
+      // ---------- S5 data in motion 15.0–18.4 ----------
+      tl.set("#s5", { opacity: 1 }, 15.0);
+      const bars = [
+        ["#bar1", "#n1", 92],
+        ["#bar2", "#n2", 67],
+        ["#bar3", "#n3", 100],
+        ["#bar4", "#n4", 54],
+      ];
+      bars.forEach(([bar, num], i) => {
+        const at = 15.2 + i * 0.16;
+        tl.fromTo(
+          bar,
+          { scaleY: 0 },
+          { scaleY: 1, duration: 0.9, ease: "power3.out" },
+          at,
+        );
+        // Static final values revealed once the bar lands. (HyperFrames
+        // renders by seeking with events suppressed, so animated text via
+        // tween callbacks isn't reproduced — only GSAP *property* tweens
+        // are seek-safe. Opacity/scale reveal is a property tween.)
+        gsap.set(num, { opacity: 0, y: 24 });
+        tl.to(
+          num,
+          { opacity: 1, y: 0, duration: 0.45, ease: "back.out(2)" },
+          at + 0.55,
+        );
+      });
+      tl.to("#s5", { opacity: 0, duration: 0.3 }, 18.2);
+
+      wipe(18.25, "#a76bff");
+
+      // ---------- S6 SVG vector + audio-reactive EQ 18.5–20.9 ----------
+      (function buildEq() {
+        const eq = document.getElementById("eq");
+        for (let i = 0; i < 32; i++) {
+          eq.appendChild(document.createElement("span"));
+        }
+      })();
+      tl.set("#s6", { opacity: 1 }, 18.5);
+
+      const vp = document.getElementById("vpath");
+      const len = vp.getTotalLength();
+      vp.style.strokeDasharray = len;
+      vp.style.strokeDashoffset = len;
+      tl.to("#vpath", { strokeDashoffset: 0, duration: 1.6, ease: "power1.inOut" }, 18.7);
+
+      // Audio-reactive-style EQ. Each bar is a GSAP scaleY tween — property
+      // tweens render correctly under HyperFrames' frame-seek. Peak heights
+      // come from a fixed per-bar function so the motion is deterministic.
+      const eqBars = Array.from(document.querySelectorAll("#eq span"));
+      eqBars.forEach((bar, i) => {
+        const peak =
+          0.45 + 0.5 * Math.abs(Math.sin(i * 0.7) + 0.4 * Math.cos(i * 1.9));
+        gsap.set(bar, { transformOrigin: "bottom center", scaleY: 0.12 });
+        tl.to(
+          bar,
+          {
+            scaleY: peak,
+            duration: 0.32 + (i % 5) * 0.05,
+            ease: "sine.inOut",
+            yoyo: true,
+            repeat: 5,
+          },
+          18.85 + (i % 8) * 0.04,
+        );
+      });
+      tl.to("#s6", { opacity: 0, duration: 0.3 }, 20.7);
+
+      wipe(20.75, "#ff5d8f");
+
+      // ---------- S7 transitions montage + outro 21.0–24.0 ----------
+      tl.set("#s7", { opacity: 1 }, 21.0);
+      tl.fromTo("#flash1", { scaleY: 0, transformOrigin: "top" }, { scaleY: 1, duration: 0.18 }, 21.05);
+      tl.to("#flash1", { scaleY: 0, transformOrigin: "bottom", duration: 0.18 }, 21.25);
+      tl.fromTo("#flash2", { scaleX: 0, transformOrigin: "left" }, { scaleX: 1, duration: 0.18 }, 21.4);
+      tl.to("#flash2", { scaleX: 0, transformOrigin: "right", duration: 0.18 }, 21.6);
+      tl.fromTo(
+        "#flash3",
+        { scale: 0, borderRadius: "50%", transformOrigin: "center" },
+        { scale: 1.6, duration: 0.22 },
+        21.75,
+      );
+      tl.to("#flash3", { opacity: 0, duration: 0.3 }, 22.0);
+      tl.to("#otitle", { opacity: 1, scale: 1, duration: 0.7, ease: "back.out(1.6)" }, 22.1);
+      tl.to("#osub", { opacity: 1, duration: 0.5 }, 22.7);
+      tl.to("#otag", { opacity: 1, duration: 0.5 }, 23.1);
+
+      // sentinel: hold the timeline to the full composition duration
+      tl.set({}, {}, 24);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
